@@ -184,24 +184,3 @@ func collisionDetectionPlayerAndEnemies(g *Game) {
 		}
 	}
 }
-
-// func collisionDetectionPlayerAndEnemies(g *Game) {
-// 	cx := float64(g.playerLocation.X)
-// 	cy := float64(g.playerLocation.Y)
-// 	playerRadius := 10.0 // Adjust as needed for your ship's size
-
-// 	for _, e := range g.enemies {
-// 		if !e.Active {
-// 			continue
-// 		}
-// 		dx := cx - e.X
-// 		dy := cy - e.Y
-// 		distSq := dx*dx + dy*dy
-// 		radiusSum := playerRadius + e.Radius
-// 		if distSq < radiusSum*radiusSum {
-// 			// Collision detected!
-// 			g.Reset() // For now, just reset the game
-// 			return
-// 		}
-// 	}
-// }
