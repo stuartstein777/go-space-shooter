@@ -29,4 +29,5 @@ type Game struct {
 	bullets        []*Bullet
 	shootCooldown  int
 	score          int
+	showSplash     bool
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"image/color"
 	"strconv"
+	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
@@ -62,4 +63,16 @@ func DrawScore(g *Game, screen *ebiten.Image) {
 	// Draw the score at the top left corner
 	scoreText := "Score: " + strconv.Itoa(g.score)
 	text.Draw(screen, scoreText, basicfont.Face7x13, 10, 20, color.White)
+}
+
+func DrawSplashScreen(screen *ebiten.Image) {
+	w, h := screen.Size()
+	msg := "SPACE SHOOTER\n\nControls:\nA/D - Rotate\nW/S - Accelerate/Decelerate\nSPACE - Shoot\n\nPress SPACE to start"
+	lines := strings.Split(msg, "\n")
+	y := h/2 - len(lines)*12
+	for i, line := range lines {
+		bounds := text.BoundString(basicfont.Face7x13, line)
+		x := (w - bounds.Dx()) / 2
+		text.Draw(screen, line, basicfont.Face7x13, x, y+20*i, color.White)
+	}
 }

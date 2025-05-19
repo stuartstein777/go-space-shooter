@@ -10,6 +10,12 @@ import (
 
 func (g *Game) Draw(screen *ebiten.Image) {
 
+	if g.showSplash {
+		FillScreen(screen)
+		DrawSplashScreen(screen)
+		return
+	}
+
 	FillScreen(screen)
 	DrawShip(g, screen)
 	DrawEnemies(g, screen)
@@ -21,9 +27,11 @@ func (g *Game) Reset() {
 	g.playerLocation = Point{X: 640, Y: 480}
 	g.velocity = 0
 	g.maxSpeed = 20 // adjust as desired
+	g.score = 0
 	g.enemies = make([]*Enemy, 0)
 	g.bullets = make([]*Bullet, 0)
 	g.shootCooldown = bulletCooldown
+	g.showSplash = true
 }
 
 func (g *Game) HandleKeyPresses() {
@@ -91,6 +99,13 @@ func movePlayerShip(g *Game) {
 }
 
 func (g *Game) Update() error {
+
+	if g.showSplash {
+		if ebiten.IsKeyPressed(ebiten.KeySpace) {
+			g.showSplash = false
+		}
+		return nil
+	}
 
 	g.HandleKeyPresses()
 
