@@ -82,6 +82,7 @@ func getScore(radius int) int {
 	case radius == 10:
 		return 40
 	}
+	return 0 // default case, shouldn't happen
 }
 
 func handleShooting(g *Game) {
