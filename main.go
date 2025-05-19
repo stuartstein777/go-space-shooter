@@ -106,6 +106,7 @@ func (g *Game) Update() error {
 
 	movePlayerShip(g)
 	spawnEnemies(g)
+	handleEnemyBounces(g)
 	deSpawnEnemies(g)
 	handleShooting(g)
 	collisionDetectionBulletsAndEnemies(g)

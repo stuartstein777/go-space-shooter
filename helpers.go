@@ -184,3 +184,41 @@ func collisionDetectionPlayerAndEnemies(g *Game) {
 		}
 	}
 }
+
+func handleEnemyBounces(g *Game) {
+	for i := 0; i < len(g.enemies); i++ {
+		e1 := g.enemies[i]
+		if !e1.Active {
+			continue
+		}
+		for j := i + 1; j < len(g.enemies); j++ {
+			e2 := g.enemies[j]
+			if !e2.Active {
+				continue
+			}
+			dx := e2.X - e1.X
+			dy := e2.Y - e1.Y
+			distSq := dx*dx + dy*dy
+			rSum := e1.Radius + e2.Radius
+			if distSq < rSum*rSum {
+				dist := math.Sqrt(distSq)
+				if dist == 0 {
+					// Prevent division by zero
+					dist = 0.1
+				}
+				// Move them apart so they're just touching
+				overlap := 0.5 * (rSum - dist)
+				nx := dx / dist
+				ny := dy / dist
+				e1.X -= nx * overlap
+				e1.Y -= ny * overlap
+				e2.X += nx * overlap
+				e2.Y += ny * overlap
+
+				// Swap velocities (simple elastic collision)
+				e1.VX, e2.VX = e2.VX, e1.VX
+				e1.VY, e2.VY = e2.VY, e1.VY
+			}
+		}
+	}
+}
