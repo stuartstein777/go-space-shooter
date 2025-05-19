@@ -31,7 +31,6 @@ func randomEdgeLocation(screenWidth, screenHeight int) (int, int, int, int) {
 }
 
 func collisionDetectionBulletsAndEnemies(g *Game) {
-	// Bullet-enemy collision detection
 	for _, b := range g.bullets {
 		if !b.Active {
 			continue
@@ -46,29 +45,43 @@ func collisionDetectionBulletsAndEnemies(g *Game) {
 			radius := e.Radius
 			if distSq < radius*radius {
 				b.Active = false
-				e.Active = false
-				break // Bullet can only hit one enemy
+				g.score += getScore(int(e.Radius))
+				if e.Radius > 10 {
+					newRadius := e.Radius / 2
+					// if the enemy is larger than 10 radius, split it into two smaller enemies
+					// spawn them in random directions
+					for i := 0; i < 2; i++ {
+						angle := rand.Float64() * 2 * math.Pi
+						speed := 3.0
+						vx := math.Cos(angle) * speed
+						vy := math.Sin(angle) * speed
+						newEnemy := &Enemy{
+							X:      e.X,
+							Y:      e.Y,
+							VX:     vx,
+							VY:     vy,
+							Radius: newRadius,
+							Active: true,
+						}
+						g.enemies = append(g.enemies, newEnemy)
+					}
+				}
+				e.HitTimer = 6 // flash before despawn
+				break
 			}
 		}
 	}
+}
 
-	// Remove inactive bullets
-	activeBullets := g.bullets[:0]
-	for _, b := range g.bullets {
-		if b.Active {
-			activeBullets = append(activeBullets, b)
-		}
+func getScore(radius int) int {
+	switch {
+	case radius == 40:
+		return 10
+	case radius == 20:
+		return 20
+	case radius == 10:
+		return 40
 	}
-	g.bullets = activeBullets
-
-	// Remove inactive enemies
-	activeEnemies := g.enemies[:0]
-	for _, e := range g.enemies {
-		if e.Active {
-			activeEnemies = append(activeEnemies, e)
-		}
-	}
-	g.enemies = activeEnemies
 }
 
 func handleShooting(g *Game) {

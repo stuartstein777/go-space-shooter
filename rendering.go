@@ -38,7 +38,14 @@ func DrawShip(g *Game, screen *ebiten.Image) {
 
 func DrawEnemies(g *Game, screen *ebiten.Image) {
 	for _, e := range g.enemies {
-		vector.StrokeCircle(screen, float32(e.X), float32(e.Y), float32(e.Radius), 2, color.RGBA{255, 0, 0, 255}, true)
+		col := color.RGBA{255, 0, 0, 255}
+
+		// flash them red if they are hit
+		if e.HitTimer == 0 {
+			col = color.RGBA{255, 255, 0, 255}
+		}
+
+		vector.StrokeCircle(screen, float32(e.X), float32(e.Y), float32(e.Radius), 2, col, false)
 	}
 }
 

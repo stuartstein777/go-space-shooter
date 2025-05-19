@@ -20,6 +20,9 @@ func (g *Game) Reset() {
 	g.playerLocation = Point{X: 640, Y: 480}
 	g.velocity = 0
 	g.maxSpeed = 20 // adjust as desired
+	g.enemies = make([]*Enemy, 0)
+	g.bullets = make([]*Bullet, 0)
+	g.shootCooldown = bulletCooldown
 }
 
 func (g *Game) HandleKeyPresses() {
@@ -53,7 +56,6 @@ func (g *Game) HandleKeyPresses() {
 		tipX := cx + shipLength*math.Sin(g.shipAngle)
 		tipY := cy - shipLength*math.Cos(g.shipAngle)
 
-		bulletSpeed := 10.0
 		bullet := &Bullet{
 			X:      tipX,
 			Y:      tipY,
@@ -62,7 +64,7 @@ func (g *Game) HandleKeyPresses() {
 			Active: true,
 		}
 		g.bullets = append(g.bullets, bullet)
-		g.shootCooldown = 10 // frames between shots
+		g.shootCooldown = 15 // frames between shots
 	}
 }
 
@@ -115,7 +117,7 @@ func spawnEnemies(g *Game) {
 	if rand.Float64() < 1.0/60.0 {
 		screenWidth, screenHeight := g.Layout(0, 0)
 		spawnX, spawnY, targetX, targetY := randomEdgeLocation(screenWidth, screenHeight)
-		radius := 20.0
+		radius := 40.0
 
 		// Calculate normalized velocity vector
 		dx := float64(targetX - spawnX)
@@ -143,6 +145,15 @@ func deSpawnEnemies(g *Game) {
 	for _, e := range g.enemies {
 		e.X += e.VX
 		e.Y += e.VY
+		if e.HitTimer > 0 {
+			e.HitTimer--
+			if e.HitTimer == 0 {
+				e.Active = false // despawn after flash
+				continue
+			}
+			activeEnemies = append(activeEnemies, e)
+			continue
+		}
 		// Remove if out of bounds
 		if e.X+e.Radius < 0 || e.X-e.Radius > float64(screenWidth) ||
 			e.Y+e.Radius < 0 || e.Y-e.Radius > float64(screenHeight) {
