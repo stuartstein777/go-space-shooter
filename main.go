@@ -102,29 +102,15 @@ func (g *Game) Update() error {
 	}
 
 	movePlayerShip(g)
-	SpawnEnemies(g)
-	DeSpawnEnemies(g)
-
-	if g.shootCooldown > 0 {
-		g.shootCooldown--
-	}
-	// Move bullets and remove inactive/out-of-bounds ones
-	screenWidth, screenHeight := g.Layout(0, 0)
-	activeBullets := g.bullets[:0]
-	for _, b := range g.bullets {
-		b.X += b.VX
-		b.Y += b.VY
-		if b.X < 0 || b.X > float64(screenWidth) || b.Y < 0 || b.Y > float64(screenHeight) {
-			continue
-		}
-		activeBullets = append(activeBullets, b)
-	}
-	g.bullets = activeBullets
+	spawnEnemies(g)
+	deSpawnEnemies(g)
+	handleShooting(g)
+	collisionDetectionBulletsAndEnemies(g)
 
 	return nil
 }
 
-func SpawnEnemies(g *Game) {
+func spawnEnemies(g *Game) {
 	// Randomly spawn an enemy every ~60 frames (1 second at 60fps)
 	if rand.Float64() < 1.0/60.0 {
 		screenWidth, screenHeight := g.Layout(0, 0)
@@ -151,7 +137,7 @@ func SpawnEnemies(g *Game) {
 	}
 }
 
-func DeSpawnEnemies(g *Game) {
+func deSpawnEnemies(g *Game) {
 	screenWidth, screenHeight := g.Layout(0, 0)
 	activeEnemies := g.enemies[:0]
 	for _, e := range g.enemies {
