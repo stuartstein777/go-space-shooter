@@ -206,6 +206,7 @@ func handleEnemyBounces(g *Game) {
 					// Prevent division by zero
 					dist = 0.1
 				}
+
 				// Move them apart so they're just touching
 				overlap := 0.5 * (rSum - dist)
 				nx := dx / dist
