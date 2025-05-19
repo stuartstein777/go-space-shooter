@@ -1,64 +1,19 @@
 package main
 
 import (
-	"image/color"
 	"log"
 	"math"
+	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 )
-
-var (
-	highDPIImageCh = make(chan *ebiten.Image)
-)
-
-type Point struct {
-	X int
-	Y int
-}
-
-type Game struct {
-	playerLocation  Point
-	playerDirection int     // 0 == up, 180 = down, 90 = right, 270 = left
-	shipAngle       float64 // in radians
-	velocity        float64
-	maxSpeed        float64
-}
-
-func rotatePoint(x, y, cx, cy, angle float64) (float64, float64) {
-	sin, cos := math.Sin(float64(angle)), math.Cos(float64(angle))
-	dx, dy := float64(x-cx), float64(y-cy)
-	return cx + dx*cos - dy*sin, cy + dx*sin + dy*cos
-}
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	// Draw the player
-	screen.Fill(color.RGBA{0, 0, 0, 255}) // Fill the screen with black
 
-	// player is an elongated diamond shape
-	cx := float64(g.playerLocation.X)
-	cy := float64(g.playerLocation.Y)
-	shipHeight := float64(75.0)
-	shipWidth := float64(30.0)
-
-	// Define the four points of the diamond
-	topX, topY := cx, cy-shipHeight/2
-	rightX, rightY := cx+shipWidth/2, cy
-	bottomX, bottomY := cx, cy+shipHeight/4
-	leftX, leftY := cx-shipWidth/2, cy
-
-	angle := g.shipAngle
-	topX, topY = rotatePoint(topX, topY, cx, cy, angle)
-	rightX, rightY = rotatePoint(rightX, rightY, cx, cy, angle)
-	bottomX, bottomY = rotatePoint(bottomX, bottomY, cx, cy, angle)
-	leftX, leftY = rotatePoint(leftX, leftY, cx, cy, angle)
-
-	// Draw the ship
-	vector.StrokeLine(screen, float32(topX), float32(topY), float32(rightX), float32(rightY), 2, color.White, true)
-	vector.StrokeLine(screen, float32(rightX), float32(rightY), float32(bottomX), float32(bottomY), 2, color.White, true)
-	vector.StrokeLine(screen, float32(bottomX), float32(bottomY), float32(leftX), float32(leftY), 2, color.White, true)
-	vector.StrokeLine(screen, float32(leftX), float32(leftY), float32(topX), float32(topY), 2, color.White, true)
+	FillScreen(screen)
+	DrawShip(g, screen)
+	DrawEnemies(g, screen)
+	DrawBullets(g, screen)
 }
 
 func (g *Game) Reset() {
@@ -67,10 +22,8 @@ func (g *Game) Reset() {
 	g.maxSpeed = 20 // adjust as desired
 }
 
-func (g *Game) Update() error {
-	const rotateSpeed = 0.08 // radians per frame
-	const accel = 0.2        // acceleration per frame
-	const friction = 0.01    // natural slow down
+func (g *Game) HandleKeyPresses() {
+
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
 		g.shipAngle -= rotateSpeed
 	}
@@ -92,16 +45,28 @@ func (g *Game) Update() error {
 		}
 	}
 
-	// Apply friction if not accelerating
-	if !ebiten.IsKeyPressed(ebiten.KeyW) && !ebiten.IsKeyPressed(ebiten.KeyS) {
-		if g.velocity > 0 {
-			g.velocity -= friction
-			if g.velocity < 0 {
-				g.velocity = 0
-			}
-		}
-	}
+	if ebiten.IsKeyPressed(ebiten.KeySpace) && g.shootCooldown == 0 {
+		// Calculate tip of ship (longest section)
+		cx := float64(g.playerLocation.X)
+		cy := float64(g.playerLocation.Y)
+		shipLength := 40.0 // Should match your ship's tip length
+		tipX := cx + shipLength*math.Sin(g.shipAngle)
+		tipY := cy - shipLength*math.Cos(g.shipAngle)
 
+		bulletSpeed := 10.0
+		bullet := &Bullet{
+			X:      tipX,
+			Y:      tipY,
+			VX:     bulletSpeed * math.Sin(g.shipAngle),
+			VY:     -bulletSpeed * math.Cos(g.shipAngle),
+			Active: true,
+		}
+		g.bullets = append(g.bullets, bullet)
+		g.shootCooldown = 10 // frames between shots
+	}
+}
+
+func movePlayerShip(g *Game) {
 	// Move ship forward in the direction it's facing
 	g.playerLocation.X += int(g.velocity * math.Sin(g.shipAngle))
 	g.playerLocation.Y -= int(g.velocity * math.Cos(g.shipAngle))
@@ -120,16 +85,90 @@ func (g *Game) Update() error {
 	if g.playerLocation.Y >= screenHeight {
 		g.playerLocation.Y = 0
 	}
+}
+
+func (g *Game) Update() error {
+
+	g.HandleKeyPresses()
+
+	// Apply friction if not accelerating
+	if !ebiten.IsKeyPressed(ebiten.KeyW) && !ebiten.IsKeyPressed(ebiten.KeyS) {
+		if g.velocity > 0 {
+			g.velocity -= friction
+			if g.velocity < 0 {
+				g.velocity = 0
+			}
+		}
+	}
+
+	movePlayerShip(g)
+	SpawnEnemies(g)
+	DeSpawnEnemies(g)
+
+	if g.shootCooldown > 0 {
+		g.shootCooldown--
+	}
+	// Move bullets and remove inactive/out-of-bounds ones
+	screenWidth, screenHeight := g.Layout(0, 0)
+	activeBullets := g.bullets[:0]
+	for _, b := range g.bullets {
+		b.X += b.VX
+		b.Y += b.VY
+		if b.X < 0 || b.X > float64(screenWidth) || b.Y < 0 || b.Y > float64(screenHeight) {
+			continue
+		}
+		activeBullets = append(activeBullets, b)
+	}
+	g.bullets = activeBullets
 
 	return nil
 }
 
-func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return 1280, 960
+func SpawnEnemies(g *Game) {
+	// Randomly spawn an enemy every ~60 frames (1 second at 60fps)
+	if rand.Float64() < 1.0/60.0 {
+		screenWidth, screenHeight := g.Layout(0, 0)
+		spawnX, spawnY, targetX, targetY := randomEdgeLocation(screenWidth, screenHeight)
+		radius := 20.0
+
+		// Calculate normalized velocity vector
+		dx := float64(targetX - spawnX)
+		dy := float64(targetY - spawnY)
+		dist := math.Hypot(dx, dy)
+		speed := 3.0 // pixels per frame
+		vx := dx / dist * speed
+		vy := dy / dist * speed
+
+		enemy := &Enemy{
+			X:      float64(spawnX),
+			Y:      float64(spawnY),
+			VX:     vx,
+			VY:     vy,
+			Radius: radius,
+			Active: true,
+		}
+		g.enemies = append(g.enemies, enemy)
+	}
 }
 
-func (g *Game) MovePlayer(direction string) {
+func DeSpawnEnemies(g *Game) {
+	screenWidth, screenHeight := g.Layout(0, 0)
+	activeEnemies := g.enemies[:0]
+	for _, e := range g.enemies {
+		e.X += e.VX
+		e.Y += e.VY
+		// Remove if out of bounds
+		if e.X+e.Radius < 0 || e.X-e.Radius > float64(screenWidth) ||
+			e.Y+e.Radius < 0 || e.Y-e.Radius > float64(screenHeight) {
+			continue
+		}
+		activeEnemies = append(activeEnemies, e)
+	}
+	g.enemies = activeEnemies
+}
 
+func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+	return 1280, 960
 }
 
 func main() {
