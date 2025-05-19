@@ -102,3 +102,106 @@ func handleShooting(g *Game) {
 	}
 	g.bullets = activeBullets
 }
+func pointInPolygon(px, py float64, poly [][2]float64) bool {
+	inside := false
+	j := len(poly) - 1
+	for i := 0; i < len(poly); i++ {
+		xi, yi := poly[i][0], poly[i][1]
+		xj, yj := poly[j][0], poly[j][1]
+		if ((yi > py) != (yj > py)) &&
+			(px < (xj-xi)*(py-yi)/(yj-yi)+xi) {
+			inside = !inside
+		}
+		j = i
+	}
+	return inside
+}
+
+func distToSegmentSquared(px, py, x1, y1, x2, y2 float64) float64 {
+	l2 := (x2-x1)*(x2-x1) + (y2-y1)*(y2-y1)
+	if l2 == 0 {
+		return (px-x1)*(px-x1) + (py-y1)*(py-y1)
+	}
+	t := ((px-x1)*(x2-x1) + (py-y1)*(y2-y1)) / l2
+	if t < 0 {
+		return (px-x1)*(px-x1) + (py-y1)*(py-y1)
+	}
+	if t > 1 {
+		return (px-x2)*(px-x2) + (py-y2)*(py-y2)
+	}
+	projX := x1 + t*(x2-x1)
+	projY := y1 + t*(y2-y1)
+	return (px-projX)*(px-projX) + (py-projY)*(py-projY)
+}
+
+func polygonCircleCollision(poly [][2]float64, cx, cy, radius float64) bool {
+	// 1. Check if circle center is inside polygon
+	if pointInPolygon(cx, cy, poly) {
+		return true
+	}
+	// 2. Check if any edge is close enough to the circle
+	for i := 0; i < len(poly); i++ {
+		j := (i + 1) % len(poly)
+		if distToSegmentSquared(cx, cy, poly[i][0], poly[i][1], poly[j][0], poly[j][1]) < radius*radius {
+			return true
+		}
+	}
+	return false
+}
+
+func collisionDetectionPlayerAndEnemies(g *Game) {
+	// Calculate ship polygon points (same as in DrawShip)
+	cx := float64(g.playerLocation.X)
+	cy := float64(g.playerLocation.Y)
+	shipHeight := 75.0
+	shipWidth := 30.0
+	angle := g.shipAngle
+
+	topX, topY := cx, cy-shipHeight/2
+	rightX, rightY := cx+shipWidth/2, cy
+	bottomX, bottomY := cx, cy+shipHeight/4
+	leftX, leftY := cx-shipWidth/2, cy
+
+	topX, topY = RotatePoint(topX, topY, cx, cy, angle)
+	rightX, rightY = RotatePoint(rightX, rightY, cx, cy, angle)
+	bottomX, bottomY = RotatePoint(bottomX, bottomY, cx, cy, angle)
+	leftX, leftY = RotatePoint(leftX, leftY, cx, cy, angle)
+
+	shipPoly := [][2]float64{
+		{topX, topY},
+		{rightX, rightY},
+		{bottomX, bottomY},
+		{leftX, leftY},
+	}
+
+	for _, e := range g.enemies {
+		if !e.Active {
+			continue
+		}
+		if polygonCircleCollision(shipPoly, e.X, e.Y, e.Radius) {
+			g.Reset()
+			return
+		}
+	}
+}
+
+// func collisionDetectionPlayerAndEnemies(g *Game) {
+// 	cx := float64(g.playerLocation.X)
+// 	cy := float64(g.playerLocation.Y)
+// 	playerRadius := 10.0 // Adjust as needed for your ship's size
+
+// 	for _, e := range g.enemies {
+// 		if !e.Active {
+// 			continue
+// 		}
+// 		dx := cx - e.X
+// 		dy := cy - e.Y
+// 		distSq := dx*dx + dy*dy
+// 		radiusSum := playerRadius + e.Radius
+// 		if distSq < radiusSum*radiusSum {
+// 			// Collision detected!
+// 			g.Reset() // For now, just reset the game
+// 			return
+// 		}
+// 	}
+// }

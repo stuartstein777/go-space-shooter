@@ -14,6 +14,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	DrawShip(g, screen)
 	DrawEnemies(g, screen)
 	DrawBullets(g, screen)
+	DrawScore(g, screen)
 }
 
 func (g *Game) Reset() {
@@ -108,7 +109,7 @@ func (g *Game) Update() error {
 	deSpawnEnemies(g)
 	handleShooting(g)
 	collisionDetectionBulletsAndEnemies(g)
-
+	collisionDetectionPlayerAndEnemies(g)
 	return nil
 }
 

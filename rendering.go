@@ -2,9 +2,12 @@ package main
 
 import (
 	"image/color"
+	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"golang.org/x/image/font/basicfont"
 )
 
 func FillScreen(screen *ebiten.Image) {
@@ -53,4 +56,10 @@ func DrawBullets(g *Game, screen *ebiten.Image) {
 	for _, b := range g.bullets {
 		vector.DrawFilledCircle(screen, float32(b.X), float32(b.Y), 4, color.RGBA{R: 0, G: 255, B: 0, A: 100}, false)
 	}
+}
+
+func DrawScore(g *Game, screen *ebiten.Image) {
+	// Draw the score at the top left corner
+	scoreText := "Score: " + strconv.Itoa(g.score)
+	text.Draw(screen, scoreText, basicfont.Face7x13, 10, 20, color.White)
 }
