@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bytes"
+	"image"
 	"image/color"
 	"log"
 	"math"
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/stuartstein777/go-space-shooter/resources"
 )
 
 func (g *Game) Draw(screen *ebiten.Image) {
@@ -31,6 +34,15 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	DrawScore(g, screen)
 }
 
+func loadResources() {
+	// Decode an image from the image file's byte slice.
+	img, _, err := image.Decode(bytes.NewReader(resources.Tiles_png))
+	if err != nil {
+		log.Fatal(err)
+	}
+	resources.TilesImage = ebiten.NewImageFromImage(img)
+}
+
 func (g *Game) Reset() {
 	g.playerLocation = Point{X: 640, Y: 480}
 	g.velocity = 0
@@ -52,20 +64,11 @@ func (g *Game) HandleKeyPresses() {
 	if ebiten.IsKeyPressed(ebiten.KeyB) && g.bombs > 0 && g.flashTimer == 0 {
 		g.bombs--
 		g.flashTimer = 20 // flash for 20 frames (~1/3 second at 60fps)
-		bombScore := 0
+
 		// Kill all enemies
 		for _, e := range g.enemies {
 			e.Active = false
-			if e.Radius == 40 {
-				bombScore += 10
-			}
-			if e.Radius == 20 {
-				bombScore += 20
-			}
-			if e.Radius == 10 {
-				bombScore += 40
-			}
-			g.score += bombScore
+			g.score += getScore(int(e.Radius))
 		}
 
 		// Immediately remove inactive enemies
@@ -102,10 +105,10 @@ func (g *Game) HandleKeyPresses() {
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeySpace) && g.shootCooldown == 0 {
-		// Calculate tip of ship (longest section)
+
 		cx := float64(g.playerLocation.X)
 		cy := float64(g.playerLocation.Y)
-		shipLength := 40.0 // Should match your ship's tip length
+		shipLength := 40.0
 		tipX := cx + shipLength*math.Sin(g.shipAngle)
 		tipY := cy - shipLength*math.Cos(g.shipAngle)
 
@@ -122,6 +125,7 @@ func (g *Game) HandleKeyPresses() {
 }
 
 func movePlayerShip(g *Game) {
+
 	// Move ship forward in the direction it's facing
 	g.playerLocation.X += int(g.velocity * math.Sin(g.shipAngle))
 	g.playerLocation.Y -= int(g.velocity * math.Cos(g.shipAngle))
@@ -268,10 +272,11 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func main() {
+	loadResources()
 	game := &Game{}
 	game.Reset()
 	ebiten.SetWindowSize(1280, 960)
-	ebiten.SetWindowTitle("Snake")
+	ebiten.SetWindowTitle("Space Shooter")
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
 	}

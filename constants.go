@@ -10,3 +10,7 @@ const (
 	bulletCooldown = 15 // frames between shots
 	enemySpeed     = 1.0
 )
+
+const (
+	tileSize = 32
+)

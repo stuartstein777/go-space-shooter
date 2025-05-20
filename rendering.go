@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image"
 	"image/color"
 	"strconv"
 	"strings"
@@ -8,6 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/stuartstein777/go-space-shooter/resources"
 	"golang.org/x/image/font/basicfont"
 )
 
@@ -113,68 +115,25 @@ func DrawPowerups(g *Game, screen *ebiten.Image) {
 		if !p.Active {
 			continue
 		}
+
 		if p.Type == "shield" {
-			cx, cy := float32(p.X), float32(p.Y)
-			width := float32(20.0)
-			height := float32(30.0)
 
-			// Define shield points (top, left, bottom, right)
-			points := [][2]float32{
-				{cx + width/2, cy},                        // Top center
-				{cx, cy + height*0.4},                     // Left mid
-				{cx + width*0.3, cy + height*0.9},         // Left bottom
-				{cx + width/2, cy + height},               // Bottom center
-				{cx + width - width*0.3, cy + height*0.9}, // Right bottom
-				{cx + width, cy + height*0.4},             // Right mid
-			}
+			shieldRect := image.Rect(0, 0, 32, 32) // x0, y0, x1, y1 in pixels
+			shieldSprite := resources.TilesImage.SubImage(shieldRect).(*ebiten.Image)
 
-			// Triangulate the shield (fan from top center)
-			verts := []ebiten.Vertex{
-				{DstX: points[0][0], DstY: points[0][1], ColorR: 0, ColorG: 1, ColorB: 1, ColorA: 0.7},
-				{DstX: points[1][0], DstY: points[1][1], ColorR: 0, ColorG: 1, ColorB: 1, ColorA: 0.7},
-				{DstX: points[2][0], DstY: points[2][1], ColorR: 0, ColorG: 1, ColorB: 1, ColorA: 0.7},
-				{DstX: points[3][0], DstY: points[3][1], ColorR: 0, ColorG: 1, ColorB: 1, ColorA: 0.7},
-				{DstX: points[4][0], DstY: points[4][1], ColorR: 0, ColorG: 1, ColorB: 1, ColorA: 0.7},
-				{DstX: points[5][0], DstY: points[5][1], ColorR: 0, ColorG: 1, ColorB: 1, ColorA: 0.7},
-			}
-			indices := []uint16{
-				0, 1, 2,
-				0, 2, 3,
-				0, 3, 4,
-				0, 4, 5,
-			}
-
-			if whiteImg == nil {
-				whiteImg = ebiten.NewImage(1, 1)
-				whiteImg.Fill(color.White)
-			}
-			screen.DrawTriangles(verts, indices, whiteImg, nil)
-
-			// Draw shield outline
-			outlineColor := color.RGBA{0, 255, 255, 255}
-			for i := 0; i < len(points); i++ {
-				j := (i + 1) % len(points)
-				vector.StrokeLine(screen,
-					points[i][0], points[i][1],
-					points[j][0], points[j][1],
-					2, outlineColor, false)
-			}
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate(p.X-16, p.Y-16) // Center the sprite
+			screen.DrawImage(shieldSprite, op)
 		}
 
 		if p.Type == "bomb" {
-			cx, cy := float32(p.X), float32(p.Y)
-			r := float32(12)
-			// Draw a simple bomb: black circle with a red fuse
-			vector.StrokeCircle(screen, cx, cy, r, 2, color.RGBA{200, 200, 200, 255}, false)
-			vector.DrawFilledCircle(screen, cx, cy, r-2, color.RGBA{30, 30, 30, 220}, false)
-			// Fuse
-			vector.StrokeLine(screen, cx, cy-r, cx, cy-r-8, 2, color.RGBA{255, 0, 0, 255}, false)
+
+			bombRect := image.Rect(32, 0, 64, 32) // x0, y0, x1, y1 in pixels
+			bombSprite := resources.TilesImage.SubImage(bombRect).(*ebiten.Image)
+
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate(p.X-16, p.Y-16) // Center the sprite
+			screen.DrawImage(bombSprite, op)
 		}
 	}
-}
-
-func imageFromColor(c color.Color) *ebiten.Image {
-	img := ebiten.NewImage(1, 1)
-	img.Fill(c)
-	return img
 }

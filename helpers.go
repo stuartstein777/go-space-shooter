@@ -36,15 +36,20 @@ func collisionDetectionBulletsAndEnemies(g *Game) {
 			continue
 		}
 		for _, e := range g.enemies {
+			// if the enemy isn't active, skip it.
 			if !e.Active {
 				continue
 			}
 
+			// calculate the distance between the bullet and the enemy
 			dx := b.X - e.X
 			dy := b.Y - e.Y
 			distSq := dx*dx + dy*dy
 			radius := e.Radius
+
+			// it's a collision if the distance is less than the radius of the enemy
 			if distSq < radius*radius {
+				// if a bullet hits an enemy and the enemy is invincible, remove the bullet
 				if e.IsInvincible {
 					b.Active = false
 					activeBullets := g.bullets[:0]
@@ -56,6 +61,8 @@ func collisionDetectionBulletsAndEnemies(g *Game) {
 					g.bullets = activeBullets
 					continue
 				}
+
+				// make the bullet inactive, so it can't hit more than one enemy
 				b.Active = false
 				g.score += getScore(int(e.Radius))
 
@@ -91,7 +98,7 @@ func collisionDetectionBulletsAndEnemies(g *Game) {
 						g.enemies = append(g.enemies, newEnemy)
 					}
 				}
-				e.HitTimer = 6 // flash before despawn
+				e.HitTimer = 6 // flash before de-spawn
 				break
 			}
 		}
