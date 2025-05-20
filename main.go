@@ -225,9 +225,10 @@ func deSpawnEnemies(g *Game) {
 		if e.HitTimer > 0 {
 			e.HitTimer--
 			if e.HitTimer == 0 {
-				e.Active = false // despawn after flash
+				e.Active = false // de-spawn after flash
 
 				r := rand.Float64()
+
 				if r > 0.05 && r < 0.2 { // 10% chance to drop a shield
 					powerup := &Powerup{
 						X:      e.X,
@@ -236,7 +237,7 @@ func deSpawnEnemies(g *Game) {
 						Active: true,
 					}
 					g.powerups = append(g.powerups, powerup)
-				} else if r < 0.05 { // 10% chance to drop a bomb
+				} else if r < 0.05 { // 5% chance to drop a bomb
 					powerup := &Powerup{
 						X:      e.X,
 						Y:      e.Y,
@@ -251,6 +252,7 @@ func deSpawnEnemies(g *Game) {
 			activeEnemies = append(activeEnemies, e)
 			continue
 		}
+
 		// Remove if out of bounds
 		if e.X+e.Radius < 0 || e.X-e.Radius > float64(screenWidth) ||
 			e.Y+e.Radius < 0 || e.Y-e.Radius > float64(screenHeight) {
