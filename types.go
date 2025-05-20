@@ -20,6 +20,8 @@ type Bullet struct {
 	Active bool
 }
 
+// todo: refactor this a bit to use more entities to collectively store data
+// e.g. maxSpeed, shipAngle, velocity, etc. could be in a separate player struct
 type Game struct {
 	playerLocation Point
 	shipAngle      float64 // in radians
@@ -33,6 +35,8 @@ type Game struct {
 	powerups       []*Powerup
 	hasShield      bool
 	shieldTimer    int
+	bombs          int
+	flashTimer     int
 }
 
 type Powerup struct {

@@ -115,6 +115,7 @@ func handleShooting(g *Game) {
 	}
 	g.bullets = activeBullets
 }
+
 func pointInPolygon(px, py float64, poly [][2]float64) bool {
 	inside := false
 	j := len(poly) - 1
@@ -254,7 +255,11 @@ func handlePowerupCollection(g *Game) {
 		if dx*dx+dy*dy < (playerRadius+12)*(playerRadius+12) {
 			p.Active = false
 			if p.Type == "shield" {
-				g.ActivateShield() // implement this to give the player a shield
+				g.ActivateShield()
+			} else if p.Type == "bomb" {
+				if g.bombs < 2 {
+					g.bombs++
+				}
 			}
 		}
 	}

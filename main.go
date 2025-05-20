@@ -17,8 +17,14 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		return
 	}
 
+	if g.flashTimer > 0 {
+		screen.Fill(color.White)
+		DrawShip(g, screen, true)
+		return
+	}
+
 	FillScreen(screen)
-	DrawShip(g, screen)
+	DrawShip(g, screen, false)
 	DrawEnemies(g, screen)
 	DrawBullets(g, screen)
 	DrawPowerups(g, screen)
@@ -35,6 +41,7 @@ func (g *Game) Reset() {
 	g.shootCooldown = bulletCooldown
 	g.showSplash = true
 	g.hasShield = false
+	g.powerups = make([]*Powerup, 0)
 	whiteImg = ebiten.NewImage(1, 1)
 	whiteImg.Fill(color.White)
 }
@@ -113,6 +120,40 @@ func (g *Game) Update() error {
 		}
 	}
 
+	if g.flashTimer > 0 {
+		g.flashTimer--
+	}
+
+	if ebiten.IsKeyPressed(ebiten.KeyB) && g.bombs > 0 && g.flashTimer == 0 {
+		g.bombs--
+		g.flashTimer = 20 // flash for 20 frames (~1/3 second at 60fps)
+		bombScore := 0
+		// Kill all enemies
+		for _, e := range g.enemies {
+			e.Active = false
+			if e.Radius == 40 {
+				bombScore += 10
+			}
+			if e.Radius == 20 {
+				bombScore += 20
+			}
+			if e.Radius == 10 {
+				bombScore += 40
+			}
+			g.score += bombScore
+		}
+
+		// Immediately remove inactive enemies
+		activeEnemies := g.enemies[:0]
+		for _, e := range g.enemies {
+			if e.Active {
+				activeEnemies = append(activeEnemies, e)
+			}
+		}
+
+		g.enemies = activeEnemies
+	}
+
 	if g.showSplash {
 		if ebiten.IsKeyPressed(ebiten.KeySpace) {
 			g.showSplash = false
@@ -181,11 +222,20 @@ func deSpawnEnemies(g *Game) {
 			if e.HitTimer == 0 {
 				e.Active = false // despawn after flash
 
-				if rand.Float64() < 0.2 { // 20% chance to drop a shield
+				r := rand.Float64()
+				if r > 0.05 && r < 0.2 { // 10% chance to drop a shield
 					powerup := &Powerup{
 						X:      e.X,
 						Y:      e.Y,
 						Type:   "shield",
+						Active: true,
+					}
+					g.powerups = append(g.powerups, powerup)
+				} else if r < 0.05 { // 10% chance to drop a bomb
+					powerup := &Powerup{
+						X:      e.X,
+						Y:      e.Y,
+						Type:   "bomb",
 						Active: true,
 					}
 					g.powerups = append(g.powerups, powerup)

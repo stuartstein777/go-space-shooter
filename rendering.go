@@ -17,7 +17,7 @@ func FillScreen(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0, 0, 0, 255}) // Fill the screen with black
 }
 
-func DrawShip(g *Game, screen *ebiten.Image) {
+func DrawShip(g *Game, screen *ebiten.Image, isBlack bool) {
 	// player is an elongated diamond shape
 	cx := float64(g.playerLocation.X)
 	cy := float64(g.playerLocation.Y)
@@ -37,6 +37,10 @@ func DrawShip(g *Game, screen *ebiten.Image) {
 	leftX, leftY = RotatePoint(leftX, leftY, cx, cy, angle)
 
 	shipColour := color.RGBA{255, 255, 255, 255}
+
+	if isBlack {
+		shipColour = color.RGBA{0, 0, 0, 255} // black
+	}
 
 	if g.hasShield {
 		// Flash for last 2 seconds (120 frames)
@@ -81,11 +85,15 @@ func DrawScore(g *Game, screen *ebiten.Image) {
 	// Draw the score at the top left corner
 	scoreText := "Score: " + strconv.Itoa(g.score)
 	text.Draw(screen, scoreText, basicfont.Face7x13, 10, 20, color.White)
+
+	// Draw the bomb count below the score
+	bombText := "Bombs: " + strconv.Itoa(g.bombs)
+	text.Draw(screen, bombText, basicfont.Face7x13, 10, 40, color.RGBA{255, 200, 0, 255})
 }
 
 func DrawSplashScreen(screen *ebiten.Image) {
 	w, h := screen.Size()
-	msg := "SPACE SHOOTER\n\nControls:\nA/D - Rotate\nW/S - Accelerate/Decelerate\nSPACE - Shoot\n\nPress SPACE to start"
+	msg := "SPACE SHOOTER\n\nControls:\n\nA/D - Rotate\nW/S - Accelerate/Decelerate\nSPACE - Shoot\nB - Bomb\n\nPress SPACE to start"
 	lines := strings.Split(msg, "\n")
 	y := h/2 - len(lines)*12
 	for i, line := range lines {
@@ -146,6 +154,16 @@ func DrawPowerups(g *Game, screen *ebiten.Image) {
 					points[j][0], points[j][1],
 					2, outlineColor, false)
 			}
+		}
+
+		if p.Type == "bomb" {
+			cx, cy := float32(p.X), float32(p.Y)
+			r := float32(12)
+			// Draw a simple bomb: black circle with a red fuse
+			vector.StrokeCircle(screen, cx, cy, r, 2, color.RGBA{200, 200, 200, 255}, false)
+			vector.DrawFilledCircle(screen, cx, cy, r-2, color.RGBA{30, 30, 30, 220}, false)
+			// Fuse
+			vector.StrokeLine(screen, cx, cy-r, cx, cy-r-8, 2, color.RGBA{255, 0, 0, 255}, false)
 		}
 	}
 }
