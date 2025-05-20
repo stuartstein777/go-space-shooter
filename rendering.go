@@ -39,8 +39,19 @@ func DrawShip(g *Game, screen *ebiten.Image) {
 	shipColour := color.RGBA{255, 255, 255, 255}
 
 	if g.hasShield {
-		shipColour = color.RGBA{0, 255, 255, 180}
+		// Flash for last 2 seconds (120 frames)
+		if g.shieldTimer <= 120 {
+			// Alternate every 10 frames between white and cyan
+			if (g.shieldTimer/10)%2 == 0 {
+				shipColour = color.RGBA{0, 255, 255, 220} // cyan
+			} else {
+				shipColour = color.RGBA{255, 255, 255, 255} // white
+			}
+		} else {
+			shipColour = color.RGBA{0, 255, 255, 180} // normal cyan
+		}
 	}
+
 	vector.StrokeLine(screen, float32(topX), float32(topY), float32(rightX), float32(rightY), 2, shipColour, true)
 	vector.StrokeLine(screen, float32(rightX), float32(rightY), float32(bottomX), float32(bottomY), 2, shipColour, true)
 	vector.StrokeLine(screen, float32(bottomX), float32(bottomY), float32(leftX), float32(leftY), 2, shipColour, true)
@@ -91,27 +102,42 @@ func DrawPowerups(g *Game, screen *ebiten.Image) {
 		}
 		if p.Type == "shield" {
 			cx, cy := float32(p.X), float32(p.Y)
-			size := float32(16)
+			width := float32(20.0)
+			height := float32(30.0)
 
+			// Define shield points (top, left, bottom, right)
 			points := [][2]float32{
-				{cx, cy - size},
-				{cx - size*0.7, cy + size*0.3},
-				{cx, cy + size},
-				{cx + size*0.7, cy + size*0.3},
+				{cx + width/2, cy},                        // Top center
+				{cx, cy + height*0.4},                     // Left mid
+				{cx + width*0.3, cy + height*0.9},         // Left bottom
+				{cx + width/2, cy + height},               // Bottom center
+				{cx + width - width*0.3, cy + height*0.9}, // Right bottom
+				{cx + width, cy + height*0.4},             // Right mid
 			}
 
+			// Triangulate the shield (fan from top center)
 			verts := []ebiten.Vertex{
-				{DstX: points[0][0], DstY: points[0][1], ColorR: 0, ColorG: 0.78, ColorB: 1, ColorA: 0.7},
-				{DstX: points[1][0], DstY: points[1][1], ColorR: 0, ColorG: 0.78, ColorB: 1, ColorA: 0.7},
-				{DstX: points[2][0], DstY: points[2][1], ColorR: 0, ColorG: 0.78, ColorB: 1, ColorA: 0.7},
-				{DstX: points[3][0], DstY: points[3][1], ColorR: 0, ColorG: 0.78, ColorB: 1, ColorA: 0.7},
+				{DstX: points[0][0], DstY: points[0][1], ColorR: 0, ColorG: 1, ColorB: 1, ColorA: 0.7},
+				{DstX: points[1][0], DstY: points[1][1], ColorR: 0, ColorG: 1, ColorB: 1, ColorA: 0.7},
+				{DstX: points[2][0], DstY: points[2][1], ColorR: 0, ColorG: 1, ColorB: 1, ColorA: 0.7},
+				{DstX: points[3][0], DstY: points[3][1], ColorR: 0, ColorG: 1, ColorB: 1, ColorA: 0.7},
+				{DstX: points[4][0], DstY: points[4][1], ColorR: 0, ColorG: 1, ColorB: 1, ColorA: 0.7},
+				{DstX: points[5][0], DstY: points[5][1], ColorR: 0, ColorG: 1, ColorB: 1, ColorA: 0.7},
 			}
 			indices := []uint16{
 				0, 1, 2,
 				0, 2, 3,
+				0, 3, 4,
+				0, 4, 5,
+			}
+
+			if whiteImg == nil {
+				whiteImg = ebiten.NewImage(1, 1)
+				whiteImg.Fill(color.White)
 			}
 			screen.DrawTriangles(verts, indices, whiteImg, nil)
 
+			// Draw shield outline
 			outlineColor := color.RGBA{0, 255, 255, 255}
 			for i := 0; i < len(points); i++ {
 				j := (i + 1) % len(points)
@@ -122,4 +148,10 @@ func DrawPowerups(g *Game, screen *ebiten.Image) {
 			}
 		}
 	}
+}
+
+func imageFromColor(c color.Color) *ebiten.Image {
+	img := ebiten.NewImage(1, 1)
+	img.Fill(c)
+	return img
 }
