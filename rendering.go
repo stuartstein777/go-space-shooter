@@ -11,6 +11,8 @@ import (
 	"golang.org/x/image/font/basicfont"
 )
 
+var whiteImg *ebiten.Image
+
 func FillScreen(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0, 0, 0, 255}) // Fill the screen with black
 }
@@ -88,8 +90,36 @@ func DrawPowerups(g *Game, screen *ebiten.Image) {
 			continue
 		}
 		if p.Type == "shield" {
-			vector.DrawFilledCircle(screen, float32(p.X), float32(p.Y), 10, color.RGBA{0, 200, 255, 180}, false)
-			vector.StrokeCircle(screen, float32(p.X), float32(p.Y), 12, 2, color.RGBA{0, 255, 255, 255}, false)
+			cx, cy := float32(p.X), float32(p.Y)
+			size := float32(16)
+
+			points := [][2]float32{
+				{cx, cy - size},
+				{cx - size*0.7, cy + size*0.3},
+				{cx, cy + size},
+				{cx + size*0.7, cy + size*0.3},
+			}
+
+			verts := []ebiten.Vertex{
+				{DstX: points[0][0], DstY: points[0][1], ColorR: 0, ColorG: 0.78, ColorB: 1, ColorA: 0.7},
+				{DstX: points[1][0], DstY: points[1][1], ColorR: 0, ColorG: 0.78, ColorB: 1, ColorA: 0.7},
+				{DstX: points[2][0], DstY: points[2][1], ColorR: 0, ColorG: 0.78, ColorB: 1, ColorA: 0.7},
+				{DstX: points[3][0], DstY: points[3][1], ColorR: 0, ColorG: 0.78, ColorB: 1, ColorA: 0.7},
+			}
+			indices := []uint16{
+				0, 1, 2,
+				0, 2, 3,
+			}
+			screen.DrawTriangles(verts, indices, whiteImg, nil)
+
+			outlineColor := color.RGBA{0, 255, 255, 255}
+			for i := 0; i < len(points); i++ {
+				j := (i + 1) % len(points)
+				vector.StrokeLine(screen,
+					points[i][0], points[i][1],
+					points[j][0], points[j][1],
+					2, outlineColor, false)
+			}
 		}
 	}
 }

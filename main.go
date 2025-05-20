@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image/color"
 	"log"
 	"math"
 	"math/rand"
@@ -34,6 +35,8 @@ func (g *Game) Reset() {
 	g.shootCooldown = bulletCooldown
 	g.showSplash = true
 	g.hasShield = false
+	whiteImg = ebiten.NewImage(1, 1)
+	whiteImg.Fill(color.White)
 }
 
 func (g *Game) HandleKeyPresses() {
