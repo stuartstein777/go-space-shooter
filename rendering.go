@@ -34,10 +34,15 @@ func DrawShip(g *Game, screen *ebiten.Image) {
 	bottomX, bottomY = RotatePoint(bottomX, bottomY, cx, cy, angle)
 	leftX, leftY = RotatePoint(leftX, leftY, cx, cy, angle)
 
-	vector.StrokeLine(screen, float32(topX), float32(topY), float32(rightX), float32(rightY), 2, color.White, true)
-	vector.StrokeLine(screen, float32(rightX), float32(rightY), float32(bottomX), float32(bottomY), 2, color.White, true)
-	vector.StrokeLine(screen, float32(bottomX), float32(bottomY), float32(leftX), float32(leftY), 2, color.White, true)
-	vector.StrokeLine(screen, float32(leftX), float32(leftY), float32(topX), float32(topY), 2, color.White, true)
+	shipColour := color.RGBA{255, 255, 255, 255}
+
+	if g.hasShield {
+		shipColour = color.RGBA{0, 255, 255, 180}
+	}
+	vector.StrokeLine(screen, float32(topX), float32(topY), float32(rightX), float32(rightY), 2, shipColour, true)
+	vector.StrokeLine(screen, float32(rightX), float32(rightY), float32(bottomX), float32(bottomY), 2, shipColour, true)
+	vector.StrokeLine(screen, float32(bottomX), float32(bottomY), float32(leftX), float32(leftY), 2, shipColour, true)
+	vector.StrokeLine(screen, float32(leftX), float32(leftY), float32(topX), float32(topY), 2, shipColour, true)
 }
 
 func DrawEnemies(g *Game, screen *ebiten.Image) {
@@ -74,5 +79,17 @@ func DrawSplashScreen(screen *ebiten.Image) {
 		bounds := text.BoundString(basicfont.Face7x13, line)
 		x := (w - bounds.Dx()) / 2
 		text.Draw(screen, line, basicfont.Face7x13, x, y+20*i, color.White)
+	}
+}
+
+func DrawPowerups(g *Game, screen *ebiten.Image) {
+	for _, p := range g.powerups {
+		if !p.Active {
+			continue
+		}
+		if p.Type == "shield" {
+			vector.DrawFilledCircle(screen, float32(p.X), float32(p.Y), 10, color.RGBA{0, 200, 255, 180}, false)
+			vector.StrokeCircle(screen, float32(p.X), float32(p.Y), 12, 2, color.RGBA{0, 255, 255, 255}, false)
+		}
 	}
 }

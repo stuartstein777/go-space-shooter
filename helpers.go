@@ -151,6 +151,9 @@ func polygonCircleCollision(poly [][2]float64, cx, cy, radius float64) bool {
 
 func collisionDetectionPlayerAndEnemies(g *Game) {
 	// Calculate ship polygon points (same as in DrawShip)
+	if g.hasShield {
+		return
+	}
 	cx := float64(g.playerLocation.X)
 	cy := float64(g.playerLocation.Y)
 	shipHeight := 75.0
@@ -222,4 +225,29 @@ func handleEnemyBounces(g *Game) {
 			}
 		}
 	}
+}
+
+func handlePowerupCollection(g *Game) {
+	cx := float64(g.playerLocation.X)
+	cy := float64(g.playerLocation.Y)
+	playerRadius := 20.0 // or whatever fits your ship
+
+	for _, p := range g.powerups {
+		if !p.Active {
+			continue
+		}
+		dx := cx - p.X
+		dy := cy - p.Y
+		if dx*dx+dy*dy < (playerRadius+12)*(playerRadius+12) {
+			p.Active = false
+			if p.Type == "shield" {
+				g.ActivateShield() // implement this to give the player a shield
+			}
+		}
+	}
+}
+
+func (g *Game) ActivateShield() {
+	g.hasShield = true
+	g.shieldTimer = 300 // shield lasts for 300 frames (5 seconds at 60fps)
 }

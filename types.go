@@ -30,4 +30,13 @@ type Game struct {
 	shootCooldown  int
 	score          int
 	showSplash     bool
+	powerups       []*Powerup
+	hasShield      bool
+	shieldTimer    int
+}
+
+type Powerup struct {
+	X, Y   float64
+	Type   string // e.g. "shield"
+	Active bool
 }

@@ -20,6 +20,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	DrawShip(g, screen)
 	DrawEnemies(g, screen)
 	DrawBullets(g, screen)
+	DrawPowerups(g, screen)
 	DrawScore(g, screen)
 }
 
@@ -32,6 +33,7 @@ func (g *Game) Reset() {
 	g.bullets = make([]*Bullet, 0)
 	g.shootCooldown = bulletCooldown
 	g.showSplash = true
+	g.hasShield = false
 }
 
 func (g *Game) HandleKeyPresses() {
@@ -100,6 +102,14 @@ func movePlayerShip(g *Game) {
 
 func (g *Game) Update() error {
 
+	// if they have a shield, reduce the timer on it.
+	if g.hasShield {
+		g.shieldTimer--
+		if g.shieldTimer <= 0 {
+			g.hasShield = false
+		}
+	}
+
 	if g.showSplash {
 		if ebiten.IsKeyPressed(ebiten.KeySpace) {
 			g.showSplash = false
@@ -126,6 +136,7 @@ func (g *Game) Update() error {
 	handleShooting(g)
 	collisionDetectionBulletsAndEnemies(g)
 	collisionDetectionPlayerAndEnemies(g)
+	handlePowerupCollection(g)
 	return nil
 }
 
@@ -166,6 +177,17 @@ func deSpawnEnemies(g *Game) {
 			e.HitTimer--
 			if e.HitTimer == 0 {
 				e.Active = false // despawn after flash
+
+				if rand.Float64() < 0.2 { // 20% chance to drop a shield
+					powerup := &Powerup{
+						X:      e.X,
+						Y:      e.Y,
+						Type:   "shield",
+						Active: true,
+					}
+					g.powerups = append(g.powerups, powerup)
+				}
+
 				continue
 			}
 			activeEnemies = append(activeEnemies, e)
