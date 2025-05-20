@@ -16,16 +16,16 @@ func randomEdgeLocation(screenWidth, screenHeight int) (int, int, int, int) {
 	switch edge {
 	case 0: // Top
 		x := rand.Intn(screenWidth)
-		return x, -1, x, screenHeight - 1
+		return x, -1, rand.Intn(screenWidth), screenHeight
 	case 1: // Bottom
 		x := rand.Intn(screenWidth)
-		return x, screenHeight, x, 0
+		return x, screenHeight, rand.Intn(screenWidth), -1
 	case 2: // Left
 		y := rand.Intn(screenHeight)
-		return -1, y, screenWidth - 1, y
+		return -1, y, screenWidth, rand.Intn(screenHeight)
 	case 3: // Right
 		y := rand.Intn(screenHeight)
-		return screenWidth, y, 0, y
+		return screenWidth, y, -1, rand.Intn(screenHeight)
 	}
 	return 0, 0, 0, 0 // fallback, shouldn't happen
 }
