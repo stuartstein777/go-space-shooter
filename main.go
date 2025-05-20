@@ -42,6 +42,7 @@ func (g *Game) Reset() {
 	g.showSplash = true
 	g.hasShield = false
 	g.powerups = make([]*Powerup, 0)
+	g.bombs = 0
 	whiteImg = ebiten.NewImage(1, 1)
 	whiteImg.Fill(color.White)
 }
