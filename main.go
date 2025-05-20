@@ -136,8 +136,8 @@ func (g *Game) Update() error {
 	spawnEnemies(g)
 	handleEnemyBounces(g)
 	deSpawnEnemies(g)
-	handleShooting(g)
 	collisionDetectionBulletsAndEnemies(g)
+	handleShooting(g)
 	collisionDetectionPlayerAndEnemies(g)
 	handlePowerupCollection(g)
 	return nil

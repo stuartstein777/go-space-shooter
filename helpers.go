@@ -46,6 +46,19 @@ func collisionDetectionBulletsAndEnemies(g *Game) {
 			if distSq < radius*radius {
 				b.Active = false
 				g.score += getScore(int(e.Radius))
+
+				// Remove inactive bullets immediately after collision detection
+				// to stop them being drawn after they hit an enemy.
+				activeBullets := g.bullets[:0]
+				for _, b := range g.bullets {
+					if b.Active {
+						activeBullets = append(activeBullets, b)
+					}
+				}
+				g.bullets = activeBullets
+
+				// break enemy into smaller enemies
+				// if the enemy is smaller than 10 radius, remove it
 				if e.Radius > 10 {
 					newRadius := e.Radius / 2
 					// if the enemy is larger than 10 radius, split it into two smaller enemies
