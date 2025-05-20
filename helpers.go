@@ -39,11 +39,23 @@ func collisionDetectionBulletsAndEnemies(g *Game) {
 			if !e.Active {
 				continue
 			}
+
 			dx := b.X - e.X
 			dy := b.Y - e.Y
 			distSq := dx*dx + dy*dy
 			radius := e.Radius
 			if distSq < radius*radius {
+				if e.IsInvincible {
+					b.Active = false
+					activeBullets := g.bullets[:0]
+					for _, b := range g.bullets {
+						if b.Active {
+							activeBullets = append(activeBullets, b)
+						}
+					}
+					g.bullets = activeBullets
+					continue
+				}
 				b.Active = false
 				g.score += getScore(int(e.Radius))
 

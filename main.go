@@ -48,9 +48,40 @@ func (g *Game) Reset() {
 
 func (g *Game) HandleKeyPresses() {
 
+	if ebiten.IsKeyPressed(ebiten.KeyB) && g.bombs > 0 && g.flashTimer == 0 {
+		g.bombs--
+		g.flashTimer = 20 // flash for 20 frames (~1/3 second at 60fps)
+		bombScore := 0
+		// Kill all enemies
+		for _, e := range g.enemies {
+			e.Active = false
+			if e.Radius == 40 {
+				bombScore += 10
+			}
+			if e.Radius == 20 {
+				bombScore += 20
+			}
+			if e.Radius == 10 {
+				bombScore += 40
+			}
+			g.score += bombScore
+		}
+
+		// Immediately remove inactive enemies
+		activeEnemies := g.enemies[:0]
+		for _, e := range g.enemies {
+			if e.Active {
+				activeEnemies = append(activeEnemies, e)
+			}
+		}
+
+		g.enemies = activeEnemies
+	}
+
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
 		g.shipAngle -= rotateSpeed
 	}
+
 	if ebiten.IsKeyPressed(ebiten.KeyD) {
 		g.shipAngle += rotateSpeed
 	}
@@ -124,36 +155,6 @@ func (g *Game) Update() error {
 		g.flashTimer--
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyB) && g.bombs > 0 && g.flashTimer == 0 {
-		g.bombs--
-		g.flashTimer = 20 // flash for 20 frames (~1/3 second at 60fps)
-		bombScore := 0
-		// Kill all enemies
-		for _, e := range g.enemies {
-			e.Active = false
-			if e.Radius == 40 {
-				bombScore += 10
-			}
-			if e.Radius == 20 {
-				bombScore += 20
-			}
-			if e.Radius == 10 {
-				bombScore += 40
-			}
-			g.score += bombScore
-		}
-
-		// Immediately remove inactive enemies
-		activeEnemies := g.enemies[:0]
-		for _, e := range g.enemies {
-			if e.Active {
-				activeEnemies = append(activeEnemies, e)
-			}
-		}
-
-		g.enemies = activeEnemies
-	}
-
 	if g.showSplash {
 		if ebiten.IsKeyPressed(ebiten.KeySpace) {
 			g.showSplash = false
@@ -199,13 +200,16 @@ func spawnEnemies(g *Game) {
 		vx := dx / dist * speed
 		vy := dy / dist * speed
 
+		isInvincible := rand.Float64() < 0.05 // 5% chance to be invincible
+
 		enemy := &Enemy{
-			X:      float64(spawnX),
-			Y:      float64(spawnY),
-			VX:     vx,
-			VY:     vy,
-			Radius: radius,
-			Active: true,
+			X:            float64(spawnX),
+			Y:            float64(spawnY),
+			VX:           vx,
+			VY:           vy,
+			Radius:       radius,
+			Active:       true,
+			IsInvincible: isInvincible,
 		}
 		g.enemies = append(g.enemies, enemy)
 	}

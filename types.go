@@ -6,12 +6,13 @@ type Point struct {
 }
 
 type Enemy struct {
-	X, Y     float64
-	VX, VY   float64
-	Radius   float64
-	Active   bool
-	Size     int
-	HitTimer int
+	X, Y         float64
+	VX, VY       float64
+	Radius       float64
+	Active       bool
+	Size         int
+	HitTimer     int
+	IsInvincible bool
 }
 
 type Bullet struct {

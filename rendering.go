@@ -71,7 +71,12 @@ func DrawEnemies(g *Game, screen *ebiten.Image) {
 			col = color.RGBA{255, 255, 0, 255}
 		}
 
-		vector.StrokeCircle(screen, float32(e.X), float32(e.Y), float32(e.Radius), 2, col, false)
+		if e.IsInvincible {
+			vector.DrawFilledCircle(screen, float32(e.X), float32(e.Y), float32(e.Radius), color.RGBA{255, 0, 0, 255}, false)
+			vector.StrokeCircle(screen, float32(e.X), float32(e.Y), float32(e.Radius), 2, col, false)
+		} else {
+			vector.StrokeCircle(screen, float32(e.X), float32(e.Y), float32(e.Radius), 2, col, false)
+		}
 	}
 }
 
