@@ -217,6 +217,7 @@ func collisionDetectionPlayerAndEnemies(g *Game) {
 			continue
 		}
 		if polygonCircleCollision(shipPoly, e.X, e.Y, e.Radius) {
+			g.previousScore = g.score
 			g.Reset()
 			return
 		}

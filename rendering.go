@@ -96,6 +96,7 @@ func DrawBullets(g *Game, screen *ebiten.Image) {
 	}
 }
 
+// draws the score in the top left corner
 func DrawScore(g *Game, screen *ebiten.Image) {
 	// Draw the score at the top left corner
 	scoreText := "Score: " + strconv.Itoa(g.score)
@@ -106,12 +107,34 @@ func DrawScore(g *Game, screen *ebiten.Image) {
 	text.Draw(screen, bombText, basicfont.Face7x13, 10, 40, color.RGBA{255, 200, 0, 255})
 }
 
-func DrawSplashScreen(screen *ebiten.Image) {
+func DrawSplashScreen(g *Game, screen *ebiten.Image) {
 	bounds := screen.Bounds()
 	w, h := bounds.Dx(), bounds.Dy()
-	msg := "SPACE SHOOTER\n\nControls:\n\nA/D - Rotate\nW/S - Accelerate/Decelerate\nSPACE - Shoot\nB - Bomb\n\nPress SPACE to start"
+	msg := "SPACE SHOOTER\n\nControls:\n\nA/D - Rotate\nW/S - Accelerate/Decelerate\nSPACE - Shoot\nB - Bomb\n\nPress ENTER to start"
 	lines := strings.Split(msg, "\n")
-	y := h/2 - len(lines)*12
+	y := 0
+
+	if g.previousScore > 0 {
+		msg = "GAME OVER\n\nPress ENTER to start again"
+		lines = strings.Split(msg, "\n")
+
+		scoreText := "Score: " + strconv.Itoa(g.previousScore)
+
+		scale := 3.0 // 3x bigger
+		face := basicfont.Face7x13
+		b := text.BoundString(face, scoreText)
+		scoreWidth := float64(b.Max.X-b.Min.X) * scale
+
+		x := int(float64(w)/2 - (scoreWidth / 2))
+		yScore := int(float64(h)/2 - float64(b.Max.Y-b.Min.Y)/2*scale)
+
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Scale(scale, scale)
+		op.GeoM.Translate(float64(x), float64(yScore)/scale)
+		op.ColorScale.Scale(1, 1, 1, 1)
+		text.DrawWithOptions(screen, scoreText, face, op)
+	}
+	y = h/2 - len(lines)*12
 	for i, line := range lines {
 		bounds := text.BoundString(basicfont.Face7x13, line)
 		x := (w - bounds.Dx()) / 2

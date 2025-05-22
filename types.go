@@ -40,6 +40,7 @@ type Game struct {
 	flashTimer             int
 	invincibleBulletsTimer int
 	frozenEnemiesTimer     int
+	previousScore          int
 }
 
 type Powerup struct {

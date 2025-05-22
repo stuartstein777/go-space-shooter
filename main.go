@@ -14,9 +14,15 @@ import (
 
 func (g *Game) Draw(screen *ebiten.Image) {
 
+	if resources.BackgroundImage != nil {
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(0, 0) // Top-left corner
+		screen.DrawImage(resources.BackgroundImage, op)
+	}
+
 	if g.showSplash {
-		FillScreen(screen)
-		DrawSplashScreen(screen)
+		//FillScreen(screen)
+		DrawSplashScreen(g, screen)
 		return
 	}
 
@@ -26,7 +32,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		return
 	}
 
-	FillScreen(screen)
+	//FillScreen(screen)
 	DrawShip(g, screen, false)
 	DrawEnemies(g, screen)
 	DrawBullets(g, screen)
@@ -41,20 +47,33 @@ func loadResources() {
 		log.Fatal(err)
 	}
 	resources.TilesImage = ebiten.NewImageFromImage(img)
+
+	// Load the background image
+	img, _, err = image.Decode(bytes.NewReader(resources.BackgroundPNG))
+	if err != nil {
+		log.Fatal(err)
+	}
+	resources.BackgroundImage = ebiten.NewImageFromImage(img)
 }
 
 func (g *Game) Reset() {
 	g.playerLocation = Point{X: 640, Y: 480}
 	g.velocity = 0
 	g.maxSpeed = 20 // adjust as desired
-	g.score = 0
+	//g.score = 0
 	g.enemies = make([]*Enemy, 0)
 	g.bullets = make([]*Bullet, 0)
 	g.shootCooldown = bulletCooldown
 	g.showSplash = true
 	g.hasShield = false
 	g.powerups = make([]*Powerup, 0)
+	g.invincibleBulletsTimer = 0
+	g.frozenEnemiesTimer = 0
+	g.shieldTimer = 0
+	g.shipAngle = 0
+	g.flashTimer = 0
 	g.bombs = 0
+	g.score = 0
 	whiteImg = ebiten.NewImage(1, 1)
 	whiteImg.Fill(color.White)
 }
@@ -168,8 +187,9 @@ func (g *Game) Update() error {
 		g.flashTimer--
 	}
 
+	// Handle pressing enter on the splash screen to start the game
 	if g.showSplash {
-		if ebiten.IsKeyPressed(ebiten.KeySpace) {
+		if ebiten.IsKeyPressed(ebiten.KeyEnter) {
 			g.showSplash = false
 		}
 		return nil
@@ -309,6 +329,8 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	loadResources()
+	resources.LoadBackground()
+
 	game := &Game{}
 	game.Reset()
 	ebiten.SetWindowSize(1280, 960)
