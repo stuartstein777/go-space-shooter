@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"strconv"
@@ -126,7 +125,7 @@ func DrawPowerups(g *Game, screen *ebiten.Image) {
 			continue
 		}
 
-		if p.Type == "shield" {
+		if p.Type == powerupShield {
 
 			shieldRect := image.Rect(0, 0, 32, 32) // x0, y0, x1, y1 in pixels
 			shieldSprite := resources.TilesImage.SubImage(shieldRect).(*ebiten.Image)
@@ -136,7 +135,7 @@ func DrawPowerups(g *Game, screen *ebiten.Image) {
 			screen.DrawImage(shieldSprite, op)
 		}
 
-		if p.Type == "bomb" {
+		if p.Type == powerupBomb {
 
 			bombRect := image.Rect(32, 0, 64, 32) // x0, y0, x1, y1 in pixels
 			bombSprite := resources.TilesImage.SubImage(bombRect).(*ebiten.Image)
@@ -146,14 +145,22 @@ func DrawPowerups(g *Game, screen *ebiten.Image) {
 			screen.DrawImage(bombSprite, op)
 		}
 
-		fmt.Println("Powerup type:", p.Type)
-		if p.Type == "invincibleBullets" {
+		if p.Type == powerupInvincibleBullets {
 			bulletRect := image.Rect(64, 0, 96, 32) // x0, y0, x1, y1 in pixels
 			bulletSprite := resources.TilesImage.SubImage(bulletRect).(*ebiten.Image)
 
 			op := &ebiten.DrawImageOptions{}
 			op.GeoM.Translate(p.X-16, p.Y-16) // Center the sprite
 			screen.DrawImage(bulletSprite, op)
+		}
+
+		if p.Type == powerupFreezeEnemies {
+			rect := image.Rect(0, 32, 32, 64) // x0, y0, x1, y1 in pixels
+			sprite := resources.TilesImage.SubImage(rect).(*ebiten.Image)
+
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate(p.X-16, p.Y-16) // Center the sprite
+			screen.DrawImage(sprite, op)
 		}
 	}
 }

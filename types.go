@@ -39,10 +39,11 @@ type Game struct {
 	bombs                  int
 	flashTimer             int
 	invincibleBulletsTimer int
+	frozenEnemiesTimer     int
 }
 
 type Powerup struct {
 	X, Y   float64
-	Type   string // e.g. "shield"
+	Type   int
 	Active bool
 }

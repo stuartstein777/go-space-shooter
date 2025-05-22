@@ -156,6 +156,10 @@ func (g *Game) Update() error {
 		}
 	}
 
+	if g.frozenEnemiesTimer > 0 {
+		g.frozenEnemiesTimer--
+	}
+
 	if g.invincibleBulletsTimer > 0 {
 		g.invincibleBulletsTimer--
 	}
@@ -195,6 +199,10 @@ func (g *Game) Update() error {
 }
 
 func spawnEnemies(g *Game) {
+	if g.frozenEnemiesTimer > 0 {
+		return
+	}
+
 	// Randomly spawn an enemy every ~60 frames (1 second at 60fps)
 	if rand.Float64() < 1.0/60.0 {
 		screenWidth, screenHeight := g.Layout(0, 0)
@@ -228,8 +236,12 @@ func deSpawnEnemies(g *Game) {
 	screenWidth, screenHeight := g.Layout(0, 0)
 	activeEnemies := g.enemies[:0]
 	for _, e := range g.enemies {
-		e.X += e.VX
-		e.Y += e.VY
+		// move enemies in the direction they are travelling, assuming they arent frozen
+		if g.frozenEnemiesTimer == 0 {
+			e.X += e.VX
+			e.Y += e.VY
+		}
+
 		if e.HitTimer > 0 {
 			e.HitTimer--
 			if e.HitTimer == 0 {
@@ -244,7 +256,7 @@ func deSpawnEnemies(g *Game) {
 						powerup := &Powerup{
 							X:      e.X,
 							Y:      e.Y,
-							Type:   "shield", // todo change to const not string
+							Type:   powerupShield,
 							Active: true,
 						}
 						g.powerups = append(g.powerups, powerup)
@@ -252,7 +264,15 @@ func deSpawnEnemies(g *Game) {
 						powerup := &Powerup{
 							X:      e.X,
 							Y:      e.Y,
-							Type:   "bomb",
+							Type:   powerupBomb,
+							Active: true,
+						}
+						g.powerups = append(g.powerups, powerup)
+					} else if r < 0.5 { // 5% chance to drop a freeze enemies
+						powerup := &Powerup{
+							X:      e.X,
+							Y:      e.Y,
+							Type:   powerupFreezeEnemies,
 							Active: true,
 						}
 						g.powerups = append(g.powerups, powerup)
@@ -260,7 +280,7 @@ func deSpawnEnemies(g *Game) {
 						powerup := &Powerup{
 							X:      e.X,
 							Y:      e.Y,
-							Type:   "invincibleBullets",
+							Type:   powerupInvincibleBullets,
 							Active: true,
 						}
 						g.powerups = append(g.powerups, powerup)

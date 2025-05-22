@@ -35,6 +35,7 @@ func collisionDetectionBulletsAndEnemies(g *Game) {
 		if !b.Active {
 			continue
 		}
+
 		for _, e := range g.enemies {
 			// if the enemy isn't active, skip it.
 			if !e.Active {
@@ -88,6 +89,14 @@ func collisionDetectionBulletsAndEnemies(g *Game) {
 							Radius: newRadius,
 							Active: true,
 						}
+
+						if g.frozenEnemiesTimer > 0 {
+							angle := rand.Float64() * 2 * math.Pi
+							offset := rand.Float64() * 4 // up to 4 pixels
+							newEnemy.X += math.Cos(angle) * offset
+							newEnemy.Y += math.Sin(angle) * offset
+						}
+
 						g.enemies = append(g.enemies, newEnemy)
 					}
 				}
@@ -266,15 +275,18 @@ func handlePowerupCollection(g *Game) {
 		dy := cy - p.Y
 		if dx*dx+dy*dy < (playerRadius+12)*(playerRadius+12) {
 			p.Active = false
-			if p.Type == "shield" {
+			if p.Type == powerupShield {
 				g.ActivateShield()
-			} else if p.Type == "bomb" {
+			} else if p.Type == powerupBomb {
 				if g.bombs < 2 {
 					g.bombs++
 				}
-			} else if p.Type == "invincibleBullets" {
+			} else if p.Type == powerupInvincibleBullets {
 				g.invincibleBulletsTimer = 300 // 5 seconds @ 60fps
+			} else if p.Type == powerupFreezeEnemies {
+				g.frozenEnemiesTimer = 300 // 5 seconds @ 60fps
 			}
+
 		}
 	}
 }
