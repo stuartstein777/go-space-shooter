@@ -21,7 +21,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	if g.showSplash {
-		//FillScreen(screen)
 		DrawSplashScreen(g, screen)
 		return
 	}
@@ -32,7 +31,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		return
 	}
 
-	//FillScreen(screen)
 	DrawShip(g, screen, false)
 	DrawEnemies(g, screen)
 	DrawBullets(g, screen)
