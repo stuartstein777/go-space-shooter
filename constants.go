@@ -14,3 +14,10 @@ const (
 const (
 	tileSize = 32
 )
+
+const (
+	powerupShield            = 1
+	powerupBomb              = 2
+	powerupInvincibleBullets = 3
+	powerupFreezeEnemies     = 4
+)

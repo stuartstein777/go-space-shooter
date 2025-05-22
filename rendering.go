@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"strconv"
@@ -83,8 +84,16 @@ func DrawEnemies(g *Game, screen *ebiten.Image) {
 }
 
 func DrawBullets(g *Game, screen *ebiten.Image) {
+
+	bulletColor := color.RGBA{0, 255, 0, 100}
+
+	if g.invincibleBulletsTimer > 0 {
+		bulletColor = color.RGBA{255, 0, 255, 100}
+	}
 	for _, b := range g.bullets {
-		vector.DrawFilledCircle(screen, float32(b.X), float32(b.Y), 4, color.RGBA{R: 0, G: 255, B: 0, A: 100}, false)
+		if b.Active {
+			vector.DrawFilledCircle(screen, float32(b.X), float32(b.Y), 4, bulletColor, false)
+		}
 	}
 }
 
@@ -99,7 +108,8 @@ func DrawScore(g *Game, screen *ebiten.Image) {
 }
 
 func DrawSplashScreen(screen *ebiten.Image) {
-	w, h := screen.Size()
+	bounds := screen.Bounds()
+	w, h := bounds.Dx(), bounds.Dy()
 	msg := "SPACE SHOOTER\n\nControls:\n\nA/D - Rotate\nW/S - Accelerate/Decelerate\nSPACE - Shoot\nB - Bomb\n\nPress SPACE to start"
 	lines := strings.Split(msg, "\n")
 	y := h/2 - len(lines)*12
@@ -134,6 +144,16 @@ func DrawPowerups(g *Game, screen *ebiten.Image) {
 			op := &ebiten.DrawImageOptions{}
 			op.GeoM.Translate(p.X-16, p.Y-16) // Center the sprite
 			screen.DrawImage(bombSprite, op)
+		}
+
+		fmt.Println("Powerup type:", p.Type)
+		if p.Type == "invincibleBullets" {
+			bulletRect := image.Rect(64, 0, 96, 32) // x0, y0, x1, y1 in pixels
+			bulletSprite := resources.TilesImage.SubImage(bulletRect).(*ebiten.Image)
+
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate(p.X-16, p.Y-16) // Center the sprite
+			screen.DrawImage(bulletSprite, op)
 		}
 	}
 }

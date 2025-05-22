@@ -49,6 +49,7 @@ func collisionDetectionBulletsAndEnemies(g *Game) {
 
 			// it's a collision if the distance is less than the radius of the enemy
 			if distSq < radius*radius {
+
 				// if a bullet hits an enemy and the enemy is invincible, remove the bullet
 				if e.IsInvincible {
 					b.Active = false
@@ -63,18 +64,10 @@ func collisionDetectionBulletsAndEnemies(g *Game) {
 				}
 
 				// make the bullet inactive, so it can't hit more than one enemy
-				b.Active = false
-				g.score += getScore(int(e.Radius))
-
-				// Remove inactive bullets immediately after collision detection
-				// to stop them being drawn after they hit an enemy.
-				activeBullets := g.bullets[:0]
-				for _, b := range g.bullets {
-					if b.Active {
-						activeBullets = append(activeBullets, b)
-					}
+				if g.invincibleBulletsTimer == 0 {
+					b.Active = false
+					g.score += getScore(int(e.Radius))
 				}
-				g.bullets = activeBullets
 
 				// break enemy into smaller enemies
 				// if the enemy is smaller than 10 radius, remove it
@@ -279,6 +272,8 @@ func handlePowerupCollection(g *Game) {
 				if g.bombs < 2 {
 					g.bombs++
 				}
+			} else if p.Type == "invincibleBullets" {
+				g.invincibleBulletsTimer = 300 // 5 seconds @ 60fps
 			}
 		}
 	}

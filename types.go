@@ -24,20 +24,21 @@ type Bullet struct {
 // todo: refactor this a bit to use more entities to collectively store data
 // e.g. maxSpeed, shipAngle, velocity, etc. could be in a separate player struct
 type Game struct {
-	playerLocation Point
-	shipAngle      float64 // in radians
-	velocity       float64
-	maxSpeed       float64
-	enemies        []*Enemy
-	bullets        []*Bullet
-	shootCooldown  int
-	score          int
-	showSplash     bool
-	powerups       []*Powerup
-	hasShield      bool
-	shieldTimer    int
-	bombs          int
-	flashTimer     int
+	playerLocation         Point
+	shipAngle              float64 // in radians
+	velocity               float64
+	maxSpeed               float64
+	enemies                []*Enemy
+	bullets                []*Bullet
+	shootCooldown          int
+	score                  int
+	showSplash             bool
+	powerups               []*Powerup
+	hasShield              bool
+	shieldTimer            int
+	bombs                  int
+	flashTimer             int
+	invincibleBulletsTimer int
 }
 
 type Powerup struct {

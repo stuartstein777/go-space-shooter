@@ -156,6 +156,10 @@ func (g *Game) Update() error {
 		}
 	}
 
+	if g.invincibleBulletsTimer > 0 {
+		g.invincibleBulletsTimer--
+	}
+
 	if g.flashTimer > 0 {
 		g.flashTimer--
 	}
@@ -233,22 +237,34 @@ func deSpawnEnemies(g *Game) {
 
 				r := rand.Float64()
 
-				if r > 0.05 && r < 0.2 { // 10% chance to drop a shield
-					powerup := &Powerup{
-						X:      e.X,
-						Y:      e.Y,
-						Type:   "shield",
-						Active: true,
+				if r > 0.0 && r < 0.10 { // 10% chance to drop a powerup
+					r = rand.Float64()
+
+					if r < 0.05 { // 5% chance to drop a shield
+						powerup := &Powerup{
+							X:      e.X,
+							Y:      e.Y,
+							Type:   "shield", // todo change to const not string
+							Active: true,
+						}
+						g.powerups = append(g.powerups, powerup)
+					} else if r < 0.1 { // 5% chance to drop a bomb
+						powerup := &Powerup{
+							X:      e.X,
+							Y:      e.Y,
+							Type:   "bomb",
+							Active: true,
+						}
+						g.powerups = append(g.powerups, powerup)
+					} else {
+						powerup := &Powerup{
+							X:      e.X,
+							Y:      e.Y,
+							Type:   "invincibleBullets",
+							Active: true,
+						}
+						g.powerups = append(g.powerups, powerup)
 					}
-					g.powerups = append(g.powerups, powerup)
-				} else if r < 0.05 { // 5% chance to drop a bomb
-					powerup := &Powerup{
-						X:      e.X,
-						Y:      e.Y,
-						Type:   "bomb",
-						Active: true,
-					}
-					g.powerups = append(g.powerups, powerup)
 				}
 
 				continue
