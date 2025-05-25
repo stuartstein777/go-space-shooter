@@ -174,7 +174,7 @@ func (g *Game) HandleKeyPresses() {
 			Active: true,
 		}
 		g.bullets = append(g.bullets, bullet)
-		g.shootCooldown = 15 // frames between shots
+		g.shootCooldown = 10 // frames between shots
 	}
 }
 
