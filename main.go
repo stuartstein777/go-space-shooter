@@ -4,13 +4,20 @@ import (
 	"bytes"
 	"image"
 	"image/color"
+	"io/ioutil"
 	"log"
 	"math"
 	"math/rand"
 
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/opentype"
+
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/stuartstein777/go-space-shooter/resources"
 )
+
+var bigFont font.Face
 
 func (g *Game) Draw(screen *ebiten.Image) {
 
@@ -29,6 +36,15 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		screen.Fill(color.White)
 		DrawShip(g, screen, true)
 		return
+	}
+
+	if g.Anomaly.Incoming > 0 && g.Anomaly.Incoming%5 != 0 {
+		msg := "ANOMALY INCOMING!"
+		bounds := text.BoundString(bigFont, msg)
+		x := (1280 - bounds.Dx()) / 2
+		y := 120 // Near the top
+
+		text.Draw(screen, msg, bigFont, x, y, color.RGBA{255, 80, 80, 255})
 	}
 
 	g.Anomaly.DrawAnomaly(screen)
@@ -54,6 +70,24 @@ func loadResources() {
 		log.Fatal(err)
 	}
 	resources.BackgroundImage = ebiten.NewImageFromImage(img)
+
+	fontBytes, err := ioutil.ReadFile("resources/Roboto-Bold.ttf")
+	if err != nil {
+		log.Fatal(err)
+	}
+	ttf, err := opentype.Parse(fontBytes)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	bigFont, err = opentype.NewFace(ttf, &opentype.FaceOptions{
+		Size:    48, // Make this as big as you want
+		DPI:     72,
+		Hinting: font.HintingFull,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (g *Game) Reset() {
@@ -169,6 +203,7 @@ func movePlayerShip(g *Game) {
 func (g *Game) Update() error {
 
 	g.Anomaly.Update()
+
 	// if they have a shield, reduce the timer on it.
 	if g.hasShield {
 		g.shieldTimer--
@@ -353,6 +388,8 @@ func main() {
 
 	game := &Game{}
 	game.Reset()
+	game.hasShield = true
+	game.shieldTimer = 100000
 	ebiten.SetWindowSize(1280, 960)
 	ebiten.SetWindowTitle("Space Shooter")
 	if err := ebiten.RunGame(game); err != nil {

@@ -69,8 +69,10 @@ func collisionDetectionBulletsAndEnemies(g *Game) {
 					b.Active = false
 					g.score += getScore(int(e.Radius))
 
-					if g.score == 10 {
+					// Trigger anomaly at every new 1000-point milestone
+					if g.score/1000 > g.Anomaly.lastAnomalyScore/1000 {
 						g.Anomaly.Activate()
+						g.Anomaly.lastAnomalyScore = g.score
 					}
 				}
 

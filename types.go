@@ -22,14 +22,16 @@ type Bullet struct {
 }
 
 type Anomaly struct {
-	fadeTimer      int
-	fadeFlashTimer int
-	flashing       bool
-	SafeRadius     float64
-	SafeX          float64
-	SafeY          float64
-	Alpha          uint8
-	IsActive       bool
+	fadeTimer        int
+	fadeFlashTimer   int
+	flashing         bool
+	SafeRadius       float64
+	SafeX            float64
+	SafeY            float64
+	Alpha            uint8
+	IsActive         bool
+	Incoming         int
+	lastAnomalyScore int
 }
 
 // todo: refactor this a bit to use more entities to collectively store data

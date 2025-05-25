@@ -5,11 +5,17 @@ import "math/rand"
 func (a *Anomaly) Update() error {
 
 	if a.IsActive {
+
+		if a.Incoming > 0 {
+			a.Incoming-- // countdown until the anomaly is active
+			return nil
+		}
+
 		// if we aren't at max alpha for anomaly, increase it
 		// if it is at max, we start the flash timer
 		if !a.flashing {
 			if a.Alpha < 150 && a.fadeTimer%5 == 0 {
-				a.Alpha += 3
+				a.Alpha += 1
 				a.fadeTimer--
 			} else if a.Alpha == 150 {
 				a.fadeFlashTimer = 60
@@ -39,11 +45,12 @@ func (a *Anomaly) Update() error {
 }
 
 func (a *Anomaly) Activate() {
+	a.Incoming = 180 // frames until the anomaly is active
 	a.IsActive = true
-	a.fadeTimer = 300
+	a.fadeTimer = 360
 	a.fadeFlashTimer = 0
 	a.flashing = false
-	a.Alpha = 1
+	a.Alpha = 20
 	a.SafeRadius = 150
 
 	a.SafeX = rand.Float64() * float64(1280)
@@ -67,6 +74,7 @@ func (a *Anomaly) Activate() {
 
 func (a *Anomaly) Deactivate() {
 	a.IsActive = false
+	a.Incoming = 0
 	a.fadeTimer = 0
 	a.fadeFlashTimer = 0
 	a.flashing = false

@@ -190,29 +190,29 @@ func DrawPowerups(g *Game, screen *ebiten.Image) {
 }
 
 func (a *Anomaly) DrawAnomaly(screen *ebiten.Image) {
-	if !a.IsActive {
+	if !a.IsActive || a.Incoming > 0 {
 		return
 	}
 	w, h := screen.Size()
 
-	// 1. Draw red overlay
+	// 1. Draw red overlay to an offscreen image
 	overlay := ebiten.NewImage(w, h)
 	alpha := uint8(255 * a.Alpha)
-	r := alpha * 255
-	overlay.Fill(color.RGBA{r, 0, 0, a.Alpha})
-	screen.DrawImage(overlay, nil)
+	r := 255 * alpha
+	overlay.Fill(color.RGBA{r, 0, 0, alpha})
 
-	// 2. Draw fully opaque black circle to subtract from overlay
-	// Use a smaller image as the mask
+	// 2. Punch a transparent hole in the overlay for the safe zone
 	diameter := int(a.SafeRadius * 2)
 	mask := ebiten.NewImage(diameter, diameter)
-
 	drawFilledCircle(mask, a.SafeRadius, a.SafeRadius, a.SafeRadius, color.White)
 
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(a.SafeX-a.SafeRadius, a.SafeY-a.SafeRadius)
-	op.Blend = ebiten.BlendDestinationOut
-	screen.DrawImage(mask, op)
+	op.CompositeMode = ebiten.CompositeModeDestinationOut
+	overlay.DrawImage(mask, op)
+
+	// 3. Draw the overlay (with hole) onto the screen
+	screen.DrawImage(overlay, nil)
 }
 
 func colorToFloats(c color.Color) (r, g, b, a float32) {
