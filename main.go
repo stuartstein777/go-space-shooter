@@ -204,6 +204,10 @@ func (g *Game) Update() error {
 
 	g.Anomaly.Update()
 
+	if g.invincibleEnemiesTimer > 0 {
+		g.invincibleEnemiesTimer--
+	}
+
 	// if they have a shield, reduce the timer on it.
 	if g.hasShield {
 		g.shieldTimer--
@@ -343,7 +347,7 @@ func deSpawnEnemies(g *Game) {
 							Active: true,
 						}
 						g.powerups = append(g.powerups, powerup)
-					} else if r < 0.5 { // 5% chance to drop a freeze enemies
+					} else if r < 0.15 { // 5% chance to drop a freeze enemies
 						powerup := &Powerup{
 							X:      e.X,
 							Y:      e.Y,
@@ -351,11 +355,19 @@ func deSpawnEnemies(g *Game) {
 							Active: true,
 						}
 						g.powerups = append(g.powerups, powerup)
-					} else {
+					} else if r > 0.15 && r < 0.3 { // 15% chance to drop invincible bullets
 						powerup := &Powerup{
 							X:      e.X,
 							Y:      e.Y,
 							Type:   powerupInvincibleBullets,
+							Active: true,
+						}
+						g.powerups = append(g.powerups, powerup)
+					} else { // else its a mystery powerup
+						powerup := &Powerup{
+							X:      e.X,
+							Y:      e.Y,
+							Type:   powerUpMystery,
 							Active: true,
 						}
 						g.powerups = append(g.powerups, powerup)
@@ -388,8 +400,8 @@ func main() {
 
 	game := &Game{}
 	game.Reset()
-	game.hasShield = true
-	game.shieldTimer = 100000
+	//	game.hasShield = true
+	//	game.shieldTimer = 100000 for debugging to just be invincible.
 	ebiten.SetWindowSize(1280, 960)
 	ebiten.SetWindowTitle("Space Shooter")
 	if err := ebiten.RunGame(game); err != nil {

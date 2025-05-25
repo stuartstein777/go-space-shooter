@@ -71,10 +71,11 @@ func DrawEnemies(g *Game, screen *ebiten.Image) {
 
 		// flash them red if they are hit
 		if e.HitTimer == 0 {
+			bu
 			col = color.RGBA{255, 255, 0, 255}
 		}
 
-		if e.IsInvincible {
+		if e.IsInvincible || g.invincibleEnemiesTimer > 0 {
 			vector.DrawFilledCircle(screen, float32(e.X), float32(e.Y), float32(e.Radius), color.RGBA{255, 0, 0, 255}, false)
 			vector.StrokeCircle(screen, float32(e.X), float32(e.Y), float32(e.Radius), 2, col, false)
 		} else {
@@ -180,6 +181,15 @@ func DrawPowerups(g *Game, screen *ebiten.Image) {
 
 		if p.Type == powerupFreezeEnemies {
 			rect := image.Rect(0, 32, 32, 64) // x0, y0, x1, y1 in pixels
+			sprite := resources.TilesImage.SubImage(rect).(*ebiten.Image)
+
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate(p.X-16, p.Y-16) // Center the sprite
+			screen.DrawImage(sprite, op)
+		}
+
+		if p.Type == powerUpMystery {
+			rect := image.Rect(32, 32, 64, 64) // x0, y0, x1, y1 in pixels
 			sprite := resources.TilesImage.SubImage(rect).(*ebiten.Image)
 
 			op := &ebiten.DrawImageOptions{}

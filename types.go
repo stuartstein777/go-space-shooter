@@ -55,6 +55,7 @@ type Game struct {
 	frozenEnemiesTimer     int
 	previousScore          int
 	Anomaly                Anomaly
+	invincibleEnemiesTimer int
 }
 
 type Powerup struct {

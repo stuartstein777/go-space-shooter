@@ -31,6 +31,7 @@ func randomEdgeLocation(screenWidth, screenHeight int) (int, int, int, int) {
 }
 
 func collisionDetectionBulletsAndEnemies(g *Game) {
+
 	for _, b := range g.bullets {
 		if !b.Active {
 			continue
@@ -52,7 +53,7 @@ func collisionDetectionBulletsAndEnemies(g *Game) {
 			if distSq < radius*radius {
 
 				// if a bullet hits an enemy and the enemy is invincible, remove the bullet
-				if e.IsInvincible {
+				if e.IsInvincible || g.invincibleEnemiesTimer > 0 {
 					b.Active = false
 					activeBullets := g.bullets[:0]
 					for _, b := range g.bullets {
@@ -292,6 +293,22 @@ func handlePowerupCollection(g *Game) {
 				g.invincibleBulletsTimer = 300 // 5 seconds @ 60fps
 			} else if p.Type == powerupFreezeEnemies {
 				g.frozenEnemiesTimer = 300 // 5 seconds @ 60fps
+			} else if p.Type == powerUpMystery {
+				// Randomly choose a powerup type
+				r := rand.Float64()
+				if r < 0.25 {
+					g.ActivateShield()
+				} else if r < 0.5 {
+					if g.bombs < 2 {
+						g.bombs++
+					}
+				} else if r < 0.60 {
+					g.invincibleBulletsTimer = 300 // 5 seconds @ 60fps
+				} else if r < 0.75 {
+					g.frozenEnemiesTimer = 300 // 5 seconds @ 60fps
+				} else {
+					g.invincibleEnemiesTimer = 300
+				}
 			}
 
 		}

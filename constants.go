@@ -20,4 +20,5 @@ const (
 	powerupBomb              = 2
 	powerupInvincibleBullets = 3
 	powerupFreezeEnemies     = 4
+	powerUpMystery           = 5
 )
