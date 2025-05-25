@@ -31,11 +31,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		return
 	}
 
+	g.Anomaly.DrawAnomaly(screen)
 	DrawShip(g, screen, false)
 	DrawEnemies(g, screen)
 	DrawBullets(g, screen)
 	DrawPowerups(g, screen)
 	DrawScore(g, screen)
+
 }
 
 func loadResources() {
@@ -74,6 +76,7 @@ func (g *Game) Reset() {
 	g.score = 0
 	whiteImg = ebiten.NewImage(1, 1)
 	whiteImg.Fill(color.White)
+	g.Anomaly.Deactivate()
 }
 
 func (g *Game) HandleKeyPresses() {
@@ -165,11 +168,30 @@ func movePlayerShip(g *Game) {
 
 func (g *Game) Update() error {
 
+	g.Anomaly.Update()
 	// if they have a shield, reduce the timer on it.
 	if g.hasShield {
 		g.shieldTimer--
 		if g.shieldTimer <= 0 {
 			g.hasShield = false
+		}
+	}
+
+	if g.Anomaly.IsActive {
+		g.Anomaly.fadeTimer--
+		if g.Anomaly.fadeTimer <= 0 {
+			g.Anomaly.IsActive = false
+		}
+	}
+
+	if g.Anomaly.IsActive && g.Anomaly.fadeTimer == 1 { // On anomaly "strike"
+		dx := float64(g.playerLocation.X) - g.Anomaly.SafeX
+		dy := float64(g.playerLocation.Y) - g.Anomaly.SafeY
+		if dx*dx+dy*dy > g.Anomaly.SafeRadius*g.Anomaly.SafeRadius {
+			//	g.flashTimer = 20 // flash for 20 frames (~1/3 second at 60fps)
+			g.previousScore = g.score
+			g.showSplash = true
+			g.score = 0
 		}
 	}
 

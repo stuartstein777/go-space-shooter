@@ -21,6 +21,17 @@ type Bullet struct {
 	Active bool
 }
 
+type Anomaly struct {
+	fadeTimer      int
+	fadeFlashTimer int
+	flashing       bool
+	SafeRadius     float64
+	SafeX          float64
+	SafeY          float64
+	Alpha          uint8
+	IsActive       bool
+}
+
 // todo: refactor this a bit to use more entities to collectively store data
 // e.g. maxSpeed, shipAngle, velocity, etc. could be in a separate player struct
 type Game struct {
@@ -41,6 +52,7 @@ type Game struct {
 	invincibleBulletsTimer int
 	frozenEnemiesTimer     int
 	previousScore          int
+	Anomaly                Anomaly
 }
 
 type Powerup struct {

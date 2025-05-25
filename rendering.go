@@ -3,6 +3,7 @@ package main
 import (
 	"image"
 	"image/color"
+	"math"
 	"strconv"
 	"strings"
 
@@ -186,4 +187,73 @@ func DrawPowerups(g *Game, screen *ebiten.Image) {
 			screen.DrawImage(sprite, op)
 		}
 	}
+}
+
+func (a *Anomaly) DrawAnomaly(screen *ebiten.Image) {
+	if !a.IsActive {
+		return
+	}
+	w, h := screen.Size()
+
+	// 1. Draw red overlay
+	overlay := ebiten.NewImage(w, h)
+	alpha := uint8(255 * a.Alpha)
+	r := alpha * 255
+	overlay.Fill(color.RGBA{r, 0, 0, a.Alpha})
+	screen.DrawImage(overlay, nil)
+
+	// 2. Draw fully opaque black circle to subtract from overlay
+	// Use a smaller image as the mask
+	diameter := int(a.SafeRadius * 2)
+	mask := ebiten.NewImage(diameter, diameter)
+
+	drawFilledCircle(mask, a.SafeRadius, a.SafeRadius, a.SafeRadius, color.White)
+
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(a.SafeX-a.SafeRadius, a.SafeY-a.SafeRadius)
+	op.Blend = ebiten.BlendDestinationOut
+	screen.DrawImage(mask, op)
+}
+
+func colorToFloats(c color.Color) (r, g, b, a float32) {
+	cr, cg, cb, ca := c.RGBA()
+	return float32(cr) / 65535, float32(cg) / 65535, float32(cb) / 65535, float32(ca) / 65535
+}
+
+func drawFilledCircle(dst *ebiten.Image, cx, cy, r float64, clr color.Color) {
+	const steps = 64
+	vertices := make([]ebiten.Vertex, 0, steps+1)
+	indices := make([]uint16, 0, steps*3)
+
+	cr, cg, cb, ca := colorToFloats(clr)
+
+	// Center vertex
+	vertices = append(vertices, ebiten.Vertex{
+		DstX:   float32(cx),
+		DstY:   float32(cy),
+		ColorR: cr, ColorG: cg, ColorB: cb, ColorA: ca,
+	})
+
+	// Outer ring
+	for i := 0; i <= steps; i++ {
+		angle := 2 * math.Pi * float64(i) / float64(steps)
+		x := float32(cx + r*math.Cos(angle))
+		y := float32(cy + r*math.Sin(angle))
+		vertices = append(vertices, ebiten.Vertex{
+			DstX:   x,
+			DstY:   y,
+			ColorR: cr, ColorG: cg, ColorB: cb, ColorA: ca,
+		})
+	}
+
+	// Indices for triangle fan
+	for i := 1; i <= steps; i++ {
+		indices = append(indices, 0, uint16(i), uint16(i+1))
+	}
+
+	// Dummy image (required by DrawTriangles)
+	src := ebiten.NewImage(1, 1)
+	src.Fill(color.White)
+
+	dst.DrawTriangles(vertices, indices, src, nil)
 }

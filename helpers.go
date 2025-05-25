@@ -68,6 +68,10 @@ func collisionDetectionBulletsAndEnemies(g *Game) {
 				if g.invincibleBulletsTimer == 0 {
 					b.Active = false
 					g.score += getScore(int(e.Radius))
+
+					if g.score == 10 {
+						g.Anomaly.Activate()
+					}
 				}
 
 				// break enemy into smaller enemies
